@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hafizah Mart - Kasir</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f9fa;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+    .container {
+      background: white;
+      padding: 20px;
+      max-width: 1000px;
+      margin: auto;
+      margin-top: 40px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #34495e;
+      color: white;
+    }
+    .total {
+      text-align: right;
+      font-size: 18px;
+      margin-top: 20px;
+    }
+    input[type="number"], input[type="text"] {
+      padding: 6px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    #struk {
+      white-space: pre-wrap;
+      background: #f4f4f4;
+      padding: 10px;
+      border: 1px dashed #ccc;
+      margin-top: 10px;
+    }
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .logo {
+      height: 50px;
+    }
+    @media screen and (max-width: 600px) {
+      .top-bar {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-bar">
+      <img src="https://i.imgur.com/7Qyl3Ek.png" alt="Logo Hafizah Mart" class="logo" />
+      <h1>Hafizah Mart - Kasir</h1>
+    </div>
+
+    <input type="text" id="scanInput" placeholder="Scan kode barang..." onkeydown="handleScan(event)">
+    <input type="text" id="search" placeholder="Cari barang..." onkeyup="filterTable()">
+
+    <table>
+      <thead>
+        <tr>
+          <th>Nama Barang</th>
+          <th>Harga (Rp)</th>
+          <th>Jumlah</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody id="daftarBelanja"></tbody>
+    </table>
+
+    <div class="total">
+      <strong>Total Belanja: Rp. <span id="totalSemua">0</span></strong>
+    </div>
+
+    <button onclick="cetakStruk()">Cetak Struk</button>
+    <div id="struk"></div>
+  </div>
+
+  <script>
+    const dataBarang = [
+      ["001", "Gula Pasir 1kg", 20000], ["002", "Gula Pasir 1/2kg", 10000], ["003", "Gula Pasir kecil", 5000],
+      ["004", "Terigu Kompas 1kg", 13000], ["005", "Terigu Kompas 1/5", 7000], ["006", "Terigu Segitiga Biru 1kg", 15000],
+      ["007", "Susu Cornecion", 13000], ["008", "Susu Kaleng Frisian Flag Putih", 14000], ["009", "Coklat", 14000],
+      ["010", "Rokok Rexo Kretek", 15000], ["011", "Rokok Rexo Hitam", 30000], ["012", "Rokok Sampoerna", 35000],
+      ["013", "Rokok Surya 16", 37000], ["014", "Rokok Surya", 27000], ["015", "Nation Bold", 30000], ["016", "Nation Gold", 25000],
+      ["017", "Energen(2)", 5000], ["018", "Energen", 3000], ["019", "Ladaku", 2000], ["020", "Jinten", 2000],
+      ["021", "Pala", 5000], ["022", "Ketumbar Bubuk", 2000], ["023", "Kunyit Bubuk", 2000],
+      ["024", "Masako", 1000], ["025", "Kayu Manis", 2000], ["026", "Bom Cabe", 2000], ["027", "Mama Suka", 7000],
+      ["028", "Antaka", 10000], ["029", "Racik Bumbu", 3000], ["030", "Sajiku", 7000], ["031", "Sayur Sup", 3000], ["032", "Ayam Goreng", 3000],
+      ["033", "Susu Omela Besar", 15000], ["034", "Susu Omela Kecil", 13000], ["035", "Kokoa", 15000],
+      ["036", "Maizenaku Kecil", 6000], ["037", "Maizenaku Sedang", 10000], ["038", "Maizenaku Besar", 15000],
+      ["039", "Nutrijel", 6000], ["040", "Agar-agar", 6000],
+      ["041", "Beras Bone Indah 10kg", 150000], ["042", "Ikan Piring 5kg", 83000], ["043", "Ikan Piring 10kg", 160000],
+      ["044", "Wii 5kg", 85000], ["045", "Wii 10kg", 170000], ["046", "Merpati 5kg", 90000], ["047", "Merpati 10kg", 170000],
+      ["048", "Sania 5kg", 85000], ["049", "Merapi 10kg", 165000],
+      ["050", "Masako Besar", 10000], ["051", "Miwon Micin Besar", 13000], ["052", "Miwon Micin Sedang", 7000],
+      ["053", "Miwon Micin Kecil", 4000], ["054", "Garam Besar", 5000], ["055", "Garam Kecil", 3000],
+      ["056", "Blue Band Biru", 15000], ["057", "Blue Band Kuning", 13000], ["058", "Palmia", 8000],
+      ["059", "Biskuit Roma Malkis", 8000], ["060", "Biskuit Kacan", 15000], ["061", "Roma Sandwich", 10000], ["062", "Biskuit Oslo", 25000],
+      ["063", "Terigu Catra Kembar", 15000], ["064", "Tepung Beras Putih", 10000], ["065", "Tepung Ketam Putih", 10000],
+      ["066", "Tepung Tapioca", 10000], ["067", "Asam Jawa (3)", 5000],
+      ["068", "Mentega Bungkusan Kuning", 13000], ["069", "Mentega Bungkusan Putih", 20000], ["070", "Teh Celup", 7000],
+      ["071", "Santangkara Besar", 18000], ["072", "Santangkara Kecil", 7000], ["073", "Daia Besar", 35000],
+      ["074", "Daia Kecil", 22000], ["075", "Daia Sedang", 8000], ["076", "Rinso Saset", 2000], ["077", "Rinso Sayang", 20000],
+      ["078", "Popo Meris Kecil", 23000], ["079", "Popo Meris Besar", 25000], ["080", "Fernipan", 5000]
+    ];
+
+    const tbody = document.getElementById("daftarBelanja");
+    dataBarang.forEach(([kode, nama, harga]) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${nama}</td>
+        <td>${harga}</td>
+        <td><input type="number" min="0" value="0" onchange="hitungTotal(this)"></td>
+        <td class="totalHarga">0</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    function hitungTotal(input) {
+      const row = input.parentElement.parentElement;
+      const harga = parseInt(row.children[1].innerText);
+      const jumlah = parseInt(input.value);
+      const total = harga * jumlah;
+      row.querySelector(".totalHarga").innerText = total;
+      hitungTotalSemua();
+    }
+
+    function hitungTotalSemua() {
+      let total = 0;
+      document.querySelectorAll(".totalHarga").forEach(td => {
+        total += parseInt(td.innerText);
+      });
+      document.getElementById("totalSemua").innerText = total;
+    }
+
+    function cetakStruk() {
+      let struk = "=== Struk Belanja Hafizah Mart ===\n";
+      document.querySelectorAll("#daftarBelanja tr").forEach(tr => {
+        const nama = tr.children[0].innerText;
+        const harga = tr.children[1].innerText;
+        const jumlah = tr.children[2].querySelector("input").value;
+        const total = tr.children[3].innerText;
+        if (jumlah > 0) {
+          struk += `\n${nama} x${jumlah} = Rp.${total}`;
+        }
+      });
+      struk += `\n\nTotal Bayar: Rp. ${document.getElementById("totalSemua").innerText}`;
+      document.getElementById("struk").innerText = struk;
+    }
+
+    function filterTable() {
+      const filter = document.getElementById("search").value.toLowerCase();
+      document.querySelectorAll("#daftarBelanja tr").forEach(tr => {
+        const nama = tr.children[0].innerText.toLowerCase();
+        tr.style.display = nama.includes(filter) ? "" : "none";
+      });
+    }
+
+    function handleScan(event) {
+      if (event.key === "Enter") {
+        const kode = event.target.value.trim();
+        const index = dataBarang.findIndex(item => item[0] === kode);
+        if (index >= 0) {
+          const tr = document.querySelectorAll("#daftarBelanja tr")[index];
+          const input = tr.querySelector("input");
+          input.value = parseInt(input.value) + 1;
+          hitungTotal(input);
+        } else {
+          alert("Kode barang tidak ditemukan!");
+        }
+        event.target.value = "";
+      }
+    }
+  </script>
+</body>
+</html>
